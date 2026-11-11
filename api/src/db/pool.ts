@@ -1,4 +1,8 @@
 import pg from "pg";
+// Return DATE columns as "YYYY-MM-DD" strings instead of JS Date objects.
+// A JS Date for "2026-08-20" is midnight in the server's timezone, and would
+// serialize to "2026-08-19T21:00:00.000Z" in Asia/Jerusalem - a classic bug.
+pg.types.setTypeParser(pg.types.builtins.DATE, (value) => value);
 import { config } from "../config.js";
 import { logger } from "../lib/logger.js";
 

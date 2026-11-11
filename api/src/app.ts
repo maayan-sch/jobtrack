@@ -7,6 +7,8 @@ import { config } from "./config.js";
 import { logger } from "./lib/logger.js";
 import { healthRouter } from "./modules/health/health.router.js";
 import { authRouter } from "./modules/auth/auth.router.js";
+import { applicationsRouter } from "./modules/applications/applications.router.js";
+import { statsRouter } from "./modules/stats/stats.router.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
 
 export function createApp() {
@@ -36,6 +38,8 @@ export function createApp() {
 
   app.use("/api/health", healthRouter);
   app.use("/api/auth", authRouter);
+  app.use("/api/applications", applicationsRouter);
+  app.use("/api/stats", statsRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);

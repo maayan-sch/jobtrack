@@ -60,10 +60,7 @@ const COLUMN_OF: Record<keyof UpdateApplicationInput, string> = {
   appliedAt: "applied_at",
 };
 
-export async function listApplications(
-  userId: string,
-  q: ListApplicationsQuery,
-) {
+export async function listApplications(userId: string, q: ListApplicationsQuery) {
   const conditions: string[] = ["user_id = $1"];
   const params: unknown[] = [userId];
 
@@ -73,9 +70,15 @@ export async function listApplications(
   }
   if (q.search) {
     params.push(`%${q.search}%`);
-    conditions.push(
-      `(company ILIKE $${params.length} OR role_title ILIKE $${params.length})`,
-    );
+    conditions.push(`(company ILIKE $${params.length} OR role_title ILIKE $${params.length})`);
+  }
+  if (q.from) {
+    params.push(q.from);
+    conditions.push(`applied_at >= $${params.length}`);
+  }
+  if (q.to) {
+    params.push(q.to);
+    conditions.push(`applied_at <= $${params.length}`);
   }
 
   const where = conditions.join(" AND ");
@@ -106,10 +109,7 @@ export async function findApplicationById(userId: string, id: string) {
   return rows[0] ? toApplication(rows[0]) : null;
 }
 
-export async function createApplication(
-  userId: string,
-  input: CreateApplicationInput,
-) {
+export async function createApplication(userId: string, input: CreateApplicationInput) {
   const { rows } = await query<ApplicationRow>(
     `INSERT INTO applications
        (user_id, company, role_title, status, source, job_url, location, notes, applied_at)
@@ -130,23 +130,16 @@ export async function createApplication(
   return toApplication(rows[0]);
 }
 
-export async function updateApplication(
-  userId: string,
-  id: string,
-  patch: UpdateApplicationInput,
-) {
-  const entries = Object.entries(patch).filter(
-    ([, value]) => value !== undefined,
-  );
+export async function updateApplication(userId: string, id: string, patch: UpdateApplicationInput) {
+  const entries = Object.entries(patch).filter(([, value]) => value !== undefined);
   const sets = entries.map(
-    ([key], i) =>
-      `${COLUMN_OF[key as keyof UpdateApplicationInput]} = $${i + 3}`,
+    ([key], i) => `${COLUMN_OF[key as keyof UpdateApplicationInput]} = $${i + 3}`,
   );
   const values = entries.map(([, value]) => value);
 
   const { rows } = await query<ApplicationRow>(
     `UPDATE applications
-     SET ${sets.join(", ")}, updated_at = now()
+     SET ${sets.join(", ")}
      WHERE id = $1 AND user_id = $2
      RETURNING *`,
     [id, userId, ...values],
@@ -154,13 +147,10 @@ export async function updateApplication(
   return rows[0] ? toApplication(rows[0]) : null;
 }
 
-export async function deleteApplication(
-  userId: string,
-  id: string,
-): Promise<boolean> {
-  const result = await query(
-    "DELETE FROM applications WHERE id = $1 AND user_id = $2",
-    [id, userId],
-  );
+export async function deleteApplication(userId: string, id: string): Promise<boolean> {
+  const result = await query("DELETE FROM applications WHERE id = $1 AND user_id = $2", [
+    id,
+    userId,
+  ]);
   return (result.rowCount ?? 0) > 0;
 }

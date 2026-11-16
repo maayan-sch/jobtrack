@@ -16,12 +16,8 @@ export async function runMigrations(): Promise<number> {
       )
     `);
 
-    const files = (await readdir(MIGRATIONS_DIR))
-      .filter((f) => f.endsWith(".sql"))
-      .sort();
-    const { rows } = await client.query<{ name: string }>(
-      "SELECT name FROM schema_migrations",
-    );
+    const files = (await readdir(MIGRATIONS_DIR)).filter((f) => f.endsWith(".sql")).sort();
+    const { rows } = await client.query<{ name: string }>("SELECT name FROM schema_migrations");
     const done = new Set(rows.map((r) => r.name));
 
     for (const file of files) {
@@ -30,9 +26,7 @@ export async function runMigrations(): Promise<number> {
       await client.query("BEGIN");
       try {
         await client.query(sql);
-        await client.query("INSERT INTO schema_migrations (name) VALUES ($1)", [
-          file,
-        ]);
+        await client.query("INSERT INTO schema_migrations (name) VALUES ($1)", [file]);
         await client.query("COMMIT");
         logger.info({ file }, "migration applied");
         applied += 1;

@@ -11,16 +11,10 @@ export const APPLICATION_STATUSES = [
 ] as const;
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
 
-export const EVENT_TYPES = [
-  "note",
-  "status_change",
-  "interview",
-  "follow_up",
-] as const;
+export const EVENT_TYPES = ["note", "status_change", "interview", "follow_up"] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 
-const optionalText = (max: number) =>
-  z.string().trim().max(max).nullable().optional();
+const optionalText = (max: number) => z.string().trim().max(max).nullable().optional();
 
 const applicationFields = z.object({
   company: z.string().trim().min(1).max(120),
@@ -52,13 +46,20 @@ export const SORT_OPTIONS = [
   "company:desc",
 ] as const;
 
-export const listApplicationsQuerySchema = z.object({
-  status: z.enum(APPLICATION_STATUSES).optional(),
-  search: z.string().trim().min(1).max(100).optional(),
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
-  sort: z.enum(SORT_OPTIONS).default("created_at:desc"),
-});
+export const listApplicationsQuerySchema = z
+  .object({
+    status: z.enum(APPLICATION_STATUSES).optional(),
+    search: z.string().trim().min(1).max(100).optional(),
+    from: z.iso.date().optional(),
+    to: z.iso.date().optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(20),
+    sort: z.enum(SORT_OPTIONS).default("created_at:desc"),
+  })
+  .refine((q) => !q.from || !q.to || q.from <= q.to, {
+    message: "from must be before or equal to to",
+    path: ["from"],
+  });
 
 export const idParamSchema = z.object({ id: z.uuid() });
 export const eventIdParamSchema = z.object({ id: z.uuid(), eventId: z.uuid() });

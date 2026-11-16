@@ -2,7 +2,7 @@ import { query } from "../../db/pool.js";
 import type { ApplicationStatus } from "../applications/applications.schemas.js";
 
 export async function getStats(userId: string) {
-  const [byStatus, perWeek, funnel] = await Promise.all([
+  const [byStatus, perWeek, funnel, avgDaysToInterview] = await Promise.all([
     query<{ status: ApplicationStatus; count: number }>(
       `SELECT status, COUNT(*)::int AS count
        FROM applications
@@ -27,13 +27,30 @@ export async function getStats(userId: string) {
        WHERE user_id = $1`,
       [userId],
     ),
+    query<{ avgDaysToInterview: number | null }>(
+      `SELECT AVG(days_to_interview)::float AS "avgDaysToInterview"
+   FROM (
+     SELECT
+       a.id,
+       a.applied_at,
+       MIN(e.happened_at)::date - a.applied_at AS days_to_interview
+     FROM applications a
+     JOIN application_events e
+       ON a.id = e.application_id
+     WHERE a.user_id = $1
+       AND e.type = 'interview'
+       AND a.applied_at IS NOT NULL
+     GROUP BY a.id, a.applied_at
+   ) AS interview_times`,
+      [userId],
+    ),
   ]);
 
   const { applied, interviewed } = funnel.rows[0];
   return {
     byStatus: byStatus.rows,
     perWeek: perWeek.rows,
-    conversionRate:
-      applied === 0 ? 0 : Math.round((interviewed / applied) * 100),
+    conversionRate: applied === 0 ? 0 : Math.round((interviewed / applied) * 100),
+    avgDaysToInterview: avgDaysToInterview.rows[0].avgDaysToInterview,
   };
 }

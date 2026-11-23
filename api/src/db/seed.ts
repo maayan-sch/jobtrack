@@ -11,22 +11,10 @@ if (isProd) {
 const DEMO_EMAIL = "demo@jobtrack.dev";
 const DEMO_PASSWORD = "Password123!";
 
-type Row = [
-  company: string,
-  role: string,
-  status: string,
-  appliedAt: string,
-  source: string,
-];
+type Row = [company: string, role: string, status: string, appliedAt: string, source: string];
 const APPLICATIONS: Row[] = [
   ["Wix", "Fullstack Developer", "interview", "2026-08-24", "linkedin"],
-  [
-    "Monday.com",
-    "Junior Backend Engineer",
-    "phone_screen",
-    "2026-08-22",
-    "company_site",
-  ],
+  ["Monday.com", "Junior Backend Engineer", "phone_screen", "2026-08-22", "company_site"],
   ["Fiverr", "Frontend Developer", "rejected", "2026-08-10", "referral"],
   ["Lemonade", "Software Engineer", "applied", "2026-08-27", "linkedin"],
   ["Riskified", "Fullstack Engineer", "applied", "2026-08-26", "linkedin"],
@@ -34,13 +22,7 @@ const APPLICATIONS: Row[] = [
   ["Melio", "Backend Developer", "offer", "2026-07-30", "referral"],
   ["Gong", "Fullstack Developer", "interview", "2026-08-18", "company_site"],
   ["Yotpo", "Web Developer", "withdrawn", "2026-07-25", "linkedin"],
-  [
-    "AppsFlyer",
-    "Junior Software Engineer",
-    "applied",
-    "2026-08-28",
-    "linkedin",
-  ],
+  ["AppsFlyer", "Junior Software Engineer", "applied", "2026-08-28", "linkedin"],
   ["Via", "Fullstack Engineer", "phone_screen", "2026-08-20", "referral"],
   ["Taboola", "Software Developer", "applied", "2026-08-12", "company_site"],
 ];
@@ -76,7 +58,7 @@ async function seed() {
       );
     }
   }
-  logger.info({ email: DEMO_EMAIL, password: DEMO_PASSWORD }, "seed complete");
+  logger.info({ email: DEMO_EMAIL }, "seed complete");
 }
 
 seed()
